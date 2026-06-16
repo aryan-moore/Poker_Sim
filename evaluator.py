@@ -9,9 +9,9 @@ def evaluate_hand(hand):
     return 0
 
 def isStraightFlush(hand):
-    for i in range(hand.length - 4):
-        if (hand[i] == hand[i+4] and hand[i] // 13 == hand[i+4] // 13):
-            return 
+    for i in range(len(hand) - 4, -1, -1):
+        if (hand[i] + 4 == hand[i+4] and hand[i] // 13 == hand[i+4] // 13):
+            return [9, hand[i+4]%13]  # Straight Flush, return rank of highest card
     return False
 
 def isFourOfAKind(hand):
