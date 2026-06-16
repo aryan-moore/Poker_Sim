@@ -1,3 +1,6 @@
+import deck
+import cards
+
 def evaluate_hand(hand):
     # Placeholder for hand evaluation logic
     # This function should return hand represnentation
