@@ -26,11 +26,21 @@ def deal_flop(deck):
     del deck[:3]  # Remove the dealt cards from the deck
     return flop
 
+def set_flop(deck, flop):
+    for card in flop:
+        remove_card(deck, card)
+        flop.append(card)
+    return flop
+
 def deal_card(deck):
     # Deal 1 community card
     turn = deck[0]
     deck.pop(0)  # Remove the dealt card from the deck
     return turn
+
+def set_card(deck, card):
+    remove_card(deck, card)
+    return card
 
 def burn_card(deck):
     # Remove the top card from the deck
