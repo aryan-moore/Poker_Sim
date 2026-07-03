@@ -4,7 +4,7 @@ import hand
 
 def evaluate_hand(hand):
     # Placeholder for hand evaluation logic
-    # This function should return hand represnentation
+    # This function should return hand representation
     if (isStraightFlush(hand)):
         return 
     return 0
@@ -18,7 +18,18 @@ def isStraightFlush(hand):
     return False
 
 def isFourOfAKind(hand):
-    # Placeholder for checking if the hand is Four of a Kind
+    ranks = [card % 13 for card in hand]
+
+    counts = [0] * 13
+
+    for card in hand:
+        counts[card % 13] += 1
+
+    for rank in range(12, -1, -1):
+        if counts[rank] == 4:
+            for kicker_rank in range(12, -1, -1):
+                if kicker_rank != rank and counts[kicker_rank] > 0:
+                    return [8, rank, kicker_rank]  # Four of a Kind, return rank of four cards and kicker
     return False
 
 def isFullHouse(hand):
@@ -27,9 +38,19 @@ def isFullHouse(hand):
 
 def isFlush(hand):
     suit_counts = [0, 0, 0, 0]
+    final = []
     for card in hand:
         suit_counts[card // 13] += 1
-    return False    
+    if any(count >= 5 for count in suit_counts):
+        final.append(6)  # Flush, return rank of highest card
+    else:
+        return False
+    for card in reversed(hand):
+        if suit_counts[card // 13] >= 5:
+            final.append(card % 13)
+        if len(final) == 6:
+            break
+    return final   
 
 def isStraight(hand):
     ranks = [card % 13 for card in hand]
