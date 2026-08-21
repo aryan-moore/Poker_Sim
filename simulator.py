@@ -26,3 +26,18 @@ def deal_trial(prepared_deck, num_opponents):
     board.append(deck.deal_card(pd))  # Turn
     board.append(deck.deal_card(pd))  # River
     return (opponent_hands, board)
+
+def score_trial(hole_cards, opponent_hands, board):
+    """
+    Score a single trial: returns whether hole_cards win, lose, or tie 
+    against the given opponent_hands and board.
+    """
+    player_score = fast_evaluator.evaluate_hand(hand.make_hand(hole_cards,board))
+    wlt = 0 # 0 = win, 1 = tie, 2 = lose
+    for opp_hand in opponent_hands:
+        opp_score = fast_evaluator.evaluate_hand(hand.make_hand(opp_hand,board))
+        if player_score < opp_score:
+            wlt = 2
+        if player_score == opp_score and wlt != 2:
+            wlt = 1
+    return wlt
