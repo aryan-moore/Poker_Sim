@@ -20,7 +20,7 @@ no per-hand sorting.
 
 For 7-card hands (hole cards + board), we check the best of all 21
 5-card combinations. That's 21 dict lookups -- still far cheaper than
-21 calls to a branching evaluator.
+1 call to a branching evaluator.
 """
 
 import itertools
