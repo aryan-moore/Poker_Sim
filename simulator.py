@@ -114,3 +114,14 @@ if __name__ == "__main__":
     num_trials = 100000
     wins, ties, losses = simulate_equity(hole_cards, num_opponents, num_trials)
     print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
+    # Example usage: simulate equity of AA against a known opponent hand over 100,000 trials
+    opponent_hands = [[cards.str_to_card("K of Clubs"), cards.str_to_card("K of Diamonds")]]  # Example: King of Spades and King of Hearts
+    wins, ties, losses = simulate_equity_known(hole_cards, opponent_hands, num_trials)
+    print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
+    # Example usage: simulate equity of AA against known opponent hands over 100,000 trials
+    opponent_hands = [
+        [cards.str_to_card("K of Clubs"), cards.str_to_card("K of Hearts")],  # Example: King of Clubs and King of Diamonds
+        [cards.str_to_card("10 of Diamonds"), cards.str_to_card("J of Diamonds")]   # Example: 10 of Diamonds and Jack of Diamonds
+    ]
+    wins, ties, losses = simulate_equity_known(hole_cards, opponent_hands, num_trials)
+    print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
