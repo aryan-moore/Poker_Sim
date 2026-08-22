@@ -4,73 +4,40 @@ import cards
 import evaluator
 import fast_evaluator
 
-def prepare_deck(hole_cards):
+def prepare_deck(hole_cards, known_opponent_hands, known_board):
     """
-    Build a fresh 52-card deck with the given hole cards removed,
-    so it's ready to deal opponents' cards and the board from.
-    """
-    deck_list = deck.new_deck()
-    for card in hole_cards:
-        deck.remove_card(deck_list, card)
-    return deck_list
-
-def prepare_deck_known(hole_cards, opponent_hands):
-    """
-    Build a fresh 52-card deck with the player's hole cards AND every
-    known opponent's hole cards removed, ready to deal a random board from.
+    Build a fresh deck with every known card removed: the player's hole
+    cards, every known opponent's hole cards, and any known board cards.
     """
     deck_list = deck.new_deck()
     for card in hole_cards:
         deck.remove_card(deck_list, card)
-    for opp_hand in opponent_hands:
+    for opp_hand in known_opponent_hands:
         for card in opp_hand:
             deck.remove_card(deck_list, card)
+    for card in known_board:
+        deck.remove_card(deck_list, card)
     return deck_list
 
-def deal_trial_known(prepared_deck, opponent_hands):
-    """
-    Deal one random trial from the prepared deck: a 5-card board.
-    Returns (opponent_hands, board).
-    """
-    pd = prepared_deck.copy()  # Make a copy of the prepared deck to shuffle and deal from
-    deck.shuffle(pd)
-    board = deck.deal_flop(pd)
-    board.append(deck.deal_card(pd))  # Turn
-    board.append(deck.deal_card(pd))  # River
-    return (opponent_hands, board)
 
-def simulate_equity_known(hole_cards, opponent_hands, num_trials):
+def deal_trial(prepared_deck, num_random_opponents, known_board):
     """
-    Simulate a number of trials to estimate the equity of hole_cards
-    against the given opponent_hands. Returns (wins, ties, losses).
+    Deal one random trial: hole cards for any remaining unknown opponents,
+    plus however many board cards are still unknown.
+    Returns (random_opponent_hands, full_board).
     """
-    prepared_deck = prepare_deck_known(hole_cards, opponent_hands)
-    wins = 0
-    ties = 0
-    losses = 0
-    for _ in range(num_trials):
-        opponent_hands, board = deal_trial_known(prepared_deck, opponent_hands)
-        result = score_trial(hole_cards, opponent_hands, board)
-        if result == 0:
-            wins += 1
-        elif result == 1:
-            ties += 1
-        else:
-            losses += 1
-    return (wins, ties, losses)
-
-def deal_trial(prepared_deck, num_opponents):
-    """
-    Deal one random trial from the prepared deck: hole cards for each
-    opponent, plus a 5-card board. Returns (opponent_hands, board).
-    """
-    pd = prepared_deck.copy()  # Make a copy of the prepared deck to shuffle and deal from
+    pd = prepared_deck.copy()
     deck.shuffle(pd)
-    opponent_hands = deck.deal_hand(pd, num_opponents)
-    board = deck.deal_flop(pd)
-    board.append(deck.deal_card(pd))  # Turn
-    board.append(deck.deal_card(pd))  # River
-    return (opponent_hands, board)
+
+    random_opponent_hands = deck.deal_hand(pd, num_random_opponents)
+
+    cards_needed = 5 - len(known_board)
+    dealt = []
+    # loop: deal that many individual cards with deck.deal_card()
+    for _ in range(cards_needed):
+        dealt.append(deck.deal_card(pd))
+    full_board = known_board + dealt
+    return random_opponent_hands, full_board
 
 def score_trial(hole_cards, opponent_hands, board):
     """
@@ -87,17 +54,25 @@ def score_trial(hole_cards, opponent_hands, board):
             wlt = 1
     return wlt
 
-def simulate_equity(hole_cards, num_opponents, num_trials):
+def simulate_equity(hole_cards, known_opponent_hands=None, num_random_opponents=0,
+                     known_board=None, num_trials=20000):
     """
-    Simulate a number of trials to estimate the equity of hole_cards
-    against num_opponents random hands. Returns (wins, ties, losses).
+    Unified equity simulator. Handles any mix of:
+      - fully random opponents (num_random_opponents > 0)
+      - fully known opponents (known_opponent_hands)
+      - both at once
+      - any known board state -- empty (preflop), partial (flop/turn), or full (river)
+    Returns (wins, ties, losses).
     """
-    prepared_deck = prepare_deck(hole_cards)
-    wins = 0
-    ties = 0
-    losses = 0
+    known_opponent_hands = known_opponent_hands if known_opponent_hands is not None else []
+    known_board = known_board if known_board is not None else []
+
+    prepared_deck = prepare_deck(hole_cards, known_opponent_hands, known_board)
+
+    wins = ties = losses = 0
     for _ in range(num_trials):
-        opponent_hands, board = deal_trial(prepared_deck, num_opponents)
+        random_hands, board = deal_trial(prepared_deck, num_random_opponents, known_board)
+        opponent_hands = known_opponent_hands + random_hands
         result = score_trial(hole_cards, opponent_hands, board)
         if result == 0:
             wins += 1
@@ -105,23 +80,24 @@ def simulate_equity(hole_cards, num_opponents, num_trials):
             ties += 1
         else:
             losses += 1
-    return (wins, ties, losses)
+
+    return wins, ties, losses
 
 if __name__ == "__main__":
     # Example usage: simulate equity of AA against a random opponent over 100,000 trials
     hole_cards = [cards.str_to_card("A of Spades"), cards.str_to_card("A of Hearts")]  # Example: Ace of Spades and Ace of Hearts
     num_opponents = 1
     num_trials = 100000
-    wins, ties, losses = simulate_equity(hole_cards, num_opponents, num_trials)
+    wins, ties, losses = simulate_equity(hole_cards, num_random_opponents=num_opponents, num_trials=num_trials)
     print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
     # Example usage: simulate equity of AA against a known opponent hand over 100,000 trials
     opponent_hands = [[cards.str_to_card("K of Clubs"), cards.str_to_card("K of Diamonds")]]  # Example: King of Spades and King of Hearts
-    wins, ties, losses = simulate_equity_known(hole_cards, opponent_hands, num_trials)
+    wins, ties, losses = simulate_equity(hole_cards, known_opponent_hands=opponent_hands, num_trials=num_trials)
     print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
     # Example usage: simulate equity of AA against known opponent hands over 100,000 trials
     opponent_hands = [
         [cards.str_to_card("K of Clubs"), cards.str_to_card("K of Hearts")],  # Example: King of Clubs and King of Diamonds
         [cards.str_to_card("10 of Diamonds"), cards.str_to_card("J of Diamonds")]   # Example: 10 of Diamonds and Jack of Diamonds
     ]
-    wins, ties, losses = simulate_equity_known(hole_cards, opponent_hands, num_trials)
+    wins, ties, losses = simulate_equity(hole_cards, known_opponent_hands=opponent_hands, num_trials=num_trials)
     print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
