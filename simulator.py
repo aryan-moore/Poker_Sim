@@ -3,6 +3,7 @@ import hand
 import cards
 import evaluator
 import fast_evaluator
+import exact_solver
 
 def prepare_deck(hole_cards, known_opponent_hands, known_board):
     """
@@ -70,6 +71,10 @@ def simulate_equity(hole_cards, known_opponent_hands=None, num_random_opponents=
     prepared_deck = prepare_deck(hole_cards, known_opponent_hands, known_board)
 
     wins = ties = losses = 0
+
+    if exact_solver.should_use_exact(num_random_opponents, 5 - len(known_board), len(prepared_deck)):
+        return exact_solver.enumerate_exact(hole_cards, known_opponent_hands, num_random_opponents, prepared_deck, known_board)
+
     for _ in range(num_trials):
         random_hands, board = deal_trial(prepared_deck, num_random_opponents, known_board)
         opponent_hands = known_opponent_hands + random_hands
