@@ -42,28 +42,17 @@ def enumerate_exact(hole_cards, known_opponent_hands, num_random_opponents, prep
     """
     cards_needed_board = 5 - len(known_board)
     wins = ties = losses = 0
-    tied = False
-    lose = False
     if num_random_opponents == 0:
         # Only the board is unknown -- iterate every possible board directly
         for board_combo in itertools.combinations(prepared_deck, cards_needed_board):
             board = known_board + list(board_combo)
-            myHand = hole_cards + board
-            lose = False
-            tied = False
-            for opp_hand in known_opponent_hands:
-                outcome = simulator.score_trial(hole_cards, [opp_hand], board)
-                if outcome == 2:
-                    lose = True
-                    break
-                elif outcome == 1:
-                    tied = True
-            if lose:
+            simulator_score = simulator.score_trial(hole_cards, known_opponent_hands, board)
+            if simulator_score == 2:
                 losses += 1
-            elif tied:
-                ties += 1
+            elif simulator_score == 1:
+                ties +=1
             else:
-                wins += 1
+                wins +=1
                 
 
     elif num_random_opponents == 1:
