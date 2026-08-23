@@ -3,7 +3,7 @@ def confidence_interval(count, n, confidence = 0.95):
     """
     Compute a confidence interval for the proportion count/n, using the
     normal approximation to the binomial distribution.
-    Returns (proportion, margin_of_error) -- report as proportion ± margin.
+    Returns (lower_bound, upper_bound) -- report as proportion ± margin.
     """
      
     if n == 0:
