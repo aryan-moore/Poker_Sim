@@ -63,6 +63,12 @@ def enumerate_exact(hole_cards, known_opponent_hands, num_random_opponents, prep
             for board_combo in itertools.combinations(remaining_after_opp, cards_needed_board):
                 board = known_board + list(board_combo)
                 opponent_hands = known_opponent_hands + [list(opp_hand_combo)]
-                # your code here -- same idea, score and tally
+                simulator_score = simulator.score_trial(hole_cards, opponent_hands, board)
+                if simulator_score == 2:
+                    losses += 1
+                elif simulator_score == 1:
+                    ties +=1
+                else:
+                    wins +=1
 
     return wins, ties, losses
