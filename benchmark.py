@@ -43,5 +43,7 @@ def run(cards_per_hand, n_hands=200000):
 
 if __name__ == "__main__":
     run(5)
+    run(5, 1000000)
     run(6)
     run(7)
+    run(7, 1000000)
