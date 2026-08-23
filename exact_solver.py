@@ -1,6 +1,8 @@
 import math
 import cards
 import fast_evaluator
+import itertools
+import simulator
 import deck
 
 def search_space_size(num_random_opponents, cards_needed_board, deck_size):
@@ -30,3 +32,48 @@ def should_use_exact(num_random_opponents, cards_needed_board, deck_size):
         return False
 
     return size < MAX_EXACT_SEARCH_SPACE
+
+def enumerate_exact(hole_cards, known_opponent_hands, num_random_opponents, prepared_deck, known_board):
+    """
+    Exhaustively enumerate every possible outcome (no random opponents,
+    or exactly 1) and tally wins/ties/losses exactly -- zero statistical
+    noise, unlike simulate_equity's sampling approach.
+    Returns (wins, ties, losses).
+    """
+    cards_needed_board = 5 - len(known_board)
+    wins = ties = losses = 0
+    tied = False
+    lose = False
+    if num_random_opponents == 0:
+        # Only the board is unknown -- iterate every possible board directly
+        for board_combo in itertools.combinations(prepared_deck, cards_needed_board):
+            board = known_board + list(board_combo)
+            myHand = hole_cards + board
+            lose = False
+            tied = False
+            for opp_hand in known_opponent_hands:
+                outcome = simulator.score_trial(hole_cards, [opp_hand], board)
+                if outcome == 2:
+                    lose = True
+                    break
+                elif outcome == 1:
+                    tied = True
+            if lose:
+                losses += 1
+            elif tied:
+                ties += 1
+            else:
+                wins += 1
+                
+
+    elif num_random_opponents == 1:
+        # Iterate every possible opponent hand, and for each one, every
+        # possible remaining board
+        for opp_hand_combo in itertools.combinations(prepared_deck, 2):
+            remaining_after_opp = [c for c in prepared_deck if c not in opp_hand_combo]
+            for board_combo in itertools.combinations(remaining_after_opp, cards_needed_board):
+                board = known_board + list(board_combo)
+                opponent_hands = known_opponent_hands + [list(opp_hand_combo)]
+                # your code here -- same idea, score and tally
+
+    return wins, ties, losses
