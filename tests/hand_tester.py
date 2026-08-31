@@ -1,9 +1,9 @@
-from evaluator import (
+from poker.evaluation.evaluator import (
     isStraight, isFlush, isStraightFlush,
     isFourOfAKind, isFullHouse, isThreeOfAKind, isTwoPair, isOnePair, isHighCard,
     evaluate_hand,
 )
-import cards
+from poker import cards
 
 
 def h(*card_specs):

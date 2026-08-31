@@ -24,7 +24,7 @@ For 7-card hands (hole cards + board), we check the best of all 21
 """
 
 import itertools
-from evaluator import (
+from poker.evaluation.evaluator import (
     strength, find_straight_high,
     HIGH_CARD, ONE_PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT,
     FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH,

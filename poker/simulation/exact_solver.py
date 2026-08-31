@@ -1,9 +1,9 @@
 import math
-import cards
-import fast_evaluator
 import itertools
-import simulator
-import deck
+from poker import cards
+from poker import deck
+from poker.evaluation import fast_evaluator
+from poker.simulation import simulator
 
 def search_space_size(num_random_opponents, cards_needed_board, deck_size):
     """

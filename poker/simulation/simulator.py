@@ -1,9 +1,9 @@
-import deck
-import hand
-import cards
-import evaluator
-import fast_evaluator
-import exact_solver
+from poker import deck
+from poker import cards
+from poker import hand
+from evaluation import evaluator
+from evaluation import fast_evaluator
+from poker.simulation import exact_solver
 
 def prepare_deck(hole_cards, known_opponent_hands, known_board):
     """

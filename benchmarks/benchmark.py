@@ -8,8 +8,8 @@ Usage: python3 benchmark.py
 import random
 import time
 
-import evaluator
-import fast_evaluator
+from poker.evaluation import evaluator
+from poker.evaluation import fast_evaluator
 
 
 def make_random_hands(n_hands, cards_per_hand, seed=1):

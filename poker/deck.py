@@ -1,5 +1,5 @@
 import random
-import cards
+from poker import cards
 
 # A deck of cards is represented as a list of integers from 0 to 51, 
 # where each integer corresponds to a specific card.

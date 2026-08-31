@@ -1,4 +1,4 @@
-import cards
+from poker import cards
 
 # Category numbers, low to high. Royal Flush isn't a separate category --
 # it's just a Straight Flush whose high tiebreak value is Ace (14).
