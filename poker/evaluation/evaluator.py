@@ -90,10 +90,10 @@ def isStraightFlush(a_hand):
     n = len(a_hand)
     for i in range(n - 4, -1, -1):
         if i + 4 < n and a_hand[i] + 4 == a_hand[i + 4] and a_hand[i] // 13 == a_hand[i + 4] // 13:
-            return [STRAIGHT_FLUSH, strength(a_hand[i + 4] % 13)]
+            return (STRAIGHT_FLUSH, strength(a_hand[i + 4] % 13))
         if (a_hand[i] + 3 == a_hand[i + 3] and a_hand[i] // 13 == a_hand[i + 3] // 13
                 and a_hand[i] % 13 == 0 and a_hand[i] + 12 in a_hand):
-            return [STRAIGHT_FLUSH, 5]  # Wheel straight flush, 5 high
+            return (STRAIGHT_FLUSH, 5)  # Wheel straight flush, 5 high
     return False
 
 
@@ -110,7 +110,7 @@ def _four_of_a_kind_from_counts(counts):
     for r in range(13):
         if r != quad_rank and counts[r] > 0 and r > kicker_rank:
             kicker_rank = r
-    return [FOUR_OF_A_KIND, strength(quad_rank), strength(kicker_rank)]
+    return (FOUR_OF_A_KIND, strength(quad_rank), strength(kicker_rank))
 
 
 def _full_house_from_counts(counts):
@@ -126,7 +126,7 @@ def _full_house_from_counts(counts):
 
     if not pair_candidates:
         return False
-    return [FULL_HOUSE, strength(trip_rank), strength(pair_candidates[0])]
+    return (FULL_HOUSE, strength(trip_rank), strength(pair_candidates[0]))
 
 
 def _flush_from_hand(a_hand, suit_counts):
@@ -139,7 +139,7 @@ def _flush_from_hand(a_hand, suit_counts):
         return False
 
     ranks = sorted((c % 13 for c in a_hand if c // 13 == flush_suit), reverse=True)[:5]
-    return [FLUSH] + [strength(r) for r in ranks]
+    return (FLUSH, *(strength(r) for r in ranks))
 
 
 def _three_of_a_kind_from_counts(counts):
@@ -148,7 +148,7 @@ def _three_of_a_kind_from_counts(counts):
         return False
     trip_rank = max(trips)
     kickers = sorted((r for r in range(13) if r != trip_rank and counts[r] > 0), reverse=True)[:2]
-    return [THREE_OF_A_KIND, strength(trip_rank)] + [strength(r) for r in kickers]
+    return (THREE_OF_A_KIND, strength(trip_rank), *(strength(r) for r in kickers))
 
 
 def _two_pair_from_counts(counts):
@@ -161,7 +161,7 @@ def _two_pair_from_counts(counts):
         if r not in top_two and counts[r] > 0 and r > kicker_rank:
             kicker_rank = r
     kicker = strength(kicker_rank) if kicker_rank != -1 else 0
-    return [TWO_PAIR, strength(top_two[0]), strength(top_two[1]), kicker]
+    return (TWO_PAIR, strength(top_two[0]), strength(top_two[1]), kicker)
 
 
 def _one_pair_from_counts(counts):
@@ -170,7 +170,7 @@ def _one_pair_from_counts(counts):
         return False
     pair_rank = max(pairs)
     kickers = sorted((r for r in range(13) if r != pair_rank and counts[r] > 0), reverse=True)[:3]
-    return [ONE_PAIR, strength(pair_rank)] + [strength(r) for r in kickers]
+    return (ONE_PAIR, strength(pair_rank), *(strength(r) for r in kickers))
 
 
 # Public isX() wrappers -- each computes its own counts, useful for testing
@@ -197,7 +197,7 @@ def isStraight(a_hand):
     high = find_straight_high(ranks)
     if high is None:
         return False
-    return [STRAIGHT, high]
+    return (STRAIGHT, high)
 
 
 def isThreeOfAKind(a_hand):
@@ -214,7 +214,7 @@ def isOnePair(a_hand):
 
 def isHighCard(a_hand):
     ranks = sorted((c % 13 for c in a_hand), reverse=True)[:5]
-    return [HIGH_CARD] + [strength(r) for r in ranks]
+    return (HIGH_CARD, *(strength(r) for r in ranks))
 
 
 def evaluate_hand(a_hand):
@@ -254,7 +254,7 @@ def evaluate_hand(a_hand):
     ranks = [c % 13 for c in a_hand]
     straight_high = find_straight_high(ranks)
     if straight_high is not None:
-        return [STRAIGHT, straight_high]
+        return (STRAIGHT, straight_high)
 
     tk = _three_of_a_kind_from_counts(counts)
     if tk:
@@ -269,4 +269,4 @@ def evaluate_hand(a_hand):
         return op
 
     top5 = sorted(ranks, reverse=True)[:5]
-    return [HIGH_CARD] + [strength(r) for r in top5]
+    return (HIGH_CARD, *(strength(r) for r in top5))

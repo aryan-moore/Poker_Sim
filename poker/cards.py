@@ -23,3 +23,6 @@ def str_to_card(card_str):
     rank = ranks[rank_str]
     suit = suits[suit_str]
     return suit * 13 + rank
+
+def make_cards(card_strings):
+    return [str_to_card(card_str) for card_str in card_strings]
