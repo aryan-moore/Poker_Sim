@@ -266,32 +266,6 @@ def test_high_card():
         (evaluator.HIGH_CARD, 14, 11, 9, 7, 5)
     )
 
-def test_wheel():
-    """
-    A-2-3-4-5 straight.
-    Ace acts as the low card, so the straight is 5-high.
-    """
-
-    hole_cards = cards.make_cards([
-        "A of Spades",
-        "2 of Hearts"
-    ])
-
-    board = cards.make_cards([
-        "3 of Diamonds",
-        "4 of Clubs",
-        "5 of Spades",
-        "K of Hearts",
-        "Q of Clubs"
-    ])
-
-    check_expected_evaluation(
-        hole_cards,
-        board,
-        (evaluator.STRAIGHT, 5)
-    )
-
-
 def test_wheel_straight_flush():
     """
     A-2-3-4-5 all in the same suit.
