@@ -2,11 +2,19 @@
 # 2 = 0, 3 = 1, ..., K = 11, A = 12
 def rank_card(card):
     return card % 13
+
+def str_to_rank(rank_str):
+    ranks = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6, '9': 7, '10': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
+    return ranks[rank_str]
  
 # Return the suit of the card
 # Spades = 0, Hearts = 1, Diamonds = 2, Clubs = 3
 def suit_card(card):
     return card // 13
+
+def str_to_suit(suit_str):
+    suits = {'Spades': 0, 'Hearts': 1, 'Diamonds': 2, 'Clubs': 3}
+    return suits[suit_str]
  
 # Return a string representation of the card
 def card_str(card):
