@@ -42,7 +42,30 @@ def generate_combinations(hand_class):
 
 
 def parse_range(range_string):
-    pass
+    hand_classes = [
+        hand_class.strip()
+        for hand_class in range_string.split(',')
+    ]
+
+    expanded = []
+    seen = set()
+
+    for hand_class in hand_classes:
+        if hand_class.endswith('+'):
+            new_hands = expand_plus_notation(hand_class)
+        elif '-' in hand_class:
+            new_hands = expand_interval_notation(hand_class)
+        else:
+            if not validate_hand_class(hand_class):
+                raise ValueError(f"Invalid hand class: {hand_class}")
+            new_hands = [hand_class]
+
+        for new_hand in new_hands:
+            if new_hand not in seen:
+                expanded.append(new_hand)
+                seen.add(new_hand)
+
+    return expanded
 
 
 def expand_plus_notation(hand_class):
@@ -71,6 +94,38 @@ def expand_plus_notation(hand_class):
             if suited:
                 new_hand += suited
             expanded.append(new_hand)
+    return expanded
+
+def expand_interval_notation(hand_class):
+    if '-' not in hand_class:
+        return [hand_class]
+
+    start, end = hand_class.split('-')
+
+    if not validate_hand_class(start) or not validate_hand_class(end):
+        raise ValueError(f"Invalid range: {hand_class}")
+
+    start_rank1, start_rank2, _ = parse_hand_class(start)
+    end_rank1, end_rank2, _ = parse_hand_class(end)
+
+    if (
+        start_rank1 != start_rank2
+        or end_rank1 != end_rank2
+    ):
+        raise ValueError(
+            f"Only pocket-pair intervals are currently supported: {hand_class}"
+        )
+
+    ranks = '23456789TJQKA'
+    start_index = ranks.index(start_rank1)
+    end_index = ranks.index(end_rank1)
+
+    if start_index > end_index:
+        raise ValueError(f"Invalid range order: {hand_class}")
+
+    expanded = []
+    for i in range(start_index, end_index + 1):
+        expanded.append(ranks[i] + ranks[i])
     return expanded
 
 
