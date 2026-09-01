@@ -130,10 +130,11 @@ def expand_interval_notation(hand_class):
 
 
 def remove_blocked_combinations(combinations, known_cards):
-    for combo in combinations:
-        if any(card in known_cards for card in combo):
-            combinations.remove(combo)
-    return combinations
+    return [
+        combo
+        for combo in combinations
+        if not any(card in known_cards for card in combo)
+    ]
 
 
 def get_legal_combinations(range_string, known_cards=None):
