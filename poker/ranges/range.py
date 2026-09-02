@@ -12,31 +12,35 @@ def generate_combinations(hand_class):
     if not validate_hand_class(hand_class):
         raise ValueError(f"Invalid hand class: {hand_class}")
     rank1, rank2, suited = parse_hand_class(hand_class)
+
+    rank1_str = '10' if rank1 == 'T' else rank1
+    rank2_str = '10' if rank2 == 'T' else rank2
+
     suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs']
     combos = []
     if rank1 == rank2:  # Pocket pairs
         for suit1 in range(len(suits)):
             for suit2 in range(suit1 + 1, len(suits)):
-                card1 = cards.str_to_card(f"{rank1} of {suits[suit1]}")
-                card2 = cards.str_to_card(f"{rank2} of {suits[suit2]}")
+                card1 = cards.str_to_card(f"{rank1_str} of {suits[suit1]}")
+                card2 = cards.str_to_card(f"{rank2_str} of {suits[suit2]}")
                 combos.append((card1, card2))
     elif suited == 's': 
         for suit in range(len(suits)):
-            card1 = cards.str_to_card(f"{rank1} of {suits[suit]}")
-            card2 = cards.str_to_card(f"{rank2} of {suits[suit]}")
+            card1 = cards.str_to_card(f"{rank1_str} of {suits[suit]}")
+            card2 = cards.str_to_card(f"{rank2_str} of {suits[suit]}")
             combos.append((card1, card2))
     elif suited == 'o':
         for suit1 in range(len(suits)):
             for suit2 in range(len(suits)):
                 if suit1 != suit2:
-                    card1 = cards.str_to_card(f"{rank1} of {suits[suit1]}")
-                    card2 = cards.str_to_card(f"{rank2} of {suits[suit2]}")
+                    card1 = cards.str_to_card(f"{rank1_str} of {suits[suit1]}")
+                    card2 = cards.str_to_card(f"{rank2_str} of {suits[suit2]}")
                     combos.append((card1, card2))
     else:  # Both suited and offsuit
         for suit1 in range(len(suits)):
             for suit2 in range(len(suits)):
-                card1 = cards.str_to_card(f"{rank1} of {suits[suit1]}")
-                card2 = cards.str_to_card(f"{rank2} of {suits[suit2]}")
+                card1 = cards.str_to_card(f"{rank1_str} of {suits[suit1]}")
+                card2 = cards.str_to_card(f"{rank2_str} of {suits[suit2]}")
                 combos.append((card1, card2))
     return combos
 
