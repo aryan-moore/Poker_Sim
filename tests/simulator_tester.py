@@ -785,3 +785,138 @@ def test_simulate_equity_records_losses_correctly(monkeypatch):
     assert wins == 0
     assert ties == 0
     assert losses == 20
+
+def test_equity_vs_range_trial_count():
+    hero = cards.make_cards([
+        "A of Spades",
+        "A of Hearts"
+    ])
+
+    wins, ties, losses = simulator.simulate_equity_vs_range(
+        hero,
+        "KK, QQ, JJ",
+        num_trials=1000
+    )
+
+    assert wins + ties + losses == 1000
+
+
+def test_equity_vs_range_guaranteed_win():
+    """
+    Hero has a pair of Aces on a completed board.
+    Every KK combination must lose.
+    """
+
+    hero = cards.make_cards([
+        "A of Spades",
+        "A of Hearts"
+    ])
+
+    board = cards.make_cards([
+        "2 of Clubs",
+        "3 of Diamonds",
+        "4 of Hearts",
+        "8 of Spades",
+        "9 of Clubs"
+    ])
+
+    wins, ties, losses = simulator.simulate_equity_vs_range(
+        hero,
+        "KK",
+        known_board=board,
+        num_trials=100
+    )
+
+    assert wins == 100
+    assert ties == 0
+    assert losses == 0
+
+
+def test_equity_vs_range_guaranteed_loss():
+    """
+    Hero only has Ace-high on a completed board.
+    Every legal AA combination must beat Hero.
+    """
+
+    hero = cards.make_cards([
+        "K of Spades",
+        "Q of Hearts"
+    ])
+
+    board = cards.make_cards([
+        "2 of Clubs",
+        "3 of Diamonds",
+        "4 of Hearts",
+        "8 of Spades",
+        "9 of Clubs"
+    ])
+
+    wins, ties, losses = simulator.simulate_equity_vs_range(
+        hero,
+        "AA",
+        known_board=board,
+        num_trials=100
+    )
+
+    assert wins == 0
+    assert ties == 0
+    assert losses == 100
+
+
+def test_equity_vs_range_guaranteed_tie():
+    """
+    The board itself is a Royal Flush, so every player
+    has exactly the same best five-card hand.
+    """
+
+    hero = cards.make_cards([
+        "2 of Clubs",
+        "3 of Diamonds"
+    ])
+
+    board = cards.make_cards([
+        "A of Spades",
+        "K of Spades",
+        "Q of Spades",
+        "J of Spades",
+        "10 of Spades"
+    ])
+
+    wins, ties, losses = simulator.simulate_equity_vs_range(
+        hero,
+        "44",
+        known_board=board,
+        num_trials=100
+    )
+
+    assert wins == 0
+    assert ties == 100
+    assert losses == 0
+
+
+def test_equity_vs_range_respects_blockers():
+    """
+    Hero and the board contain all four Aces, so there
+    are no legal AA combinations remaining for Villain.
+    """
+
+    hero = cards.make_cards([
+        "A of Spades",
+        "A of Hearts"
+    ])
+
+    board = cards.make_cards([
+        "A of Diamonds",
+        "A of Clubs",
+        "2 of Spades",
+        "3 of Hearts",
+        "4 of Diamonds"
+    ])
+
+    with pytest.raises(ValueError):
+        simulator.simulate_equity_vs_range(
+            hero,
+            "AA",
+            known_board=board,
+            num_trials=100
+        )

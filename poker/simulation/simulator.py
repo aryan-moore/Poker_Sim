@@ -1,9 +1,8 @@
-from random import random
+import random
 
 from poker import deck
 from poker import cards
 from poker import hand
-from poker.evaluation import evaluator
 from poker.evaluation import fast_evaluator
 from poker.simulation import exact_solver
 from poker.ranges import range as range_parser
@@ -92,6 +91,10 @@ def simulate_equity(hole_cards, known_opponent_hands=None, num_random_opponents=
     return wins, ties, losses
 
 def simulate_equity_vs_range(hole_cards, opponent_range, known_board=None, num_trials=20000):
+    """
+    Simulate equity of hole_cards against a given opponent range, with optional known board cards.
+    Returns (wins, ties, losses).
+    """
     
     known_board = known_board if known_board is not None else []
 
@@ -99,6 +102,9 @@ def simulate_equity_vs_range(hole_cards, opponent_range, known_board=None, num_t
         opponent_range,
         hole_cards + known_board
     )
+
+    if not legal_hands:
+        raise ValueError("Opponent range contains no legal hands after blockers.")
 
     wins = ties = losses = 0
 
