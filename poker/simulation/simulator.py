@@ -138,6 +138,22 @@ def simulate_equity_vs_range(hole_cards, opponent_range, known_board=None, num_t
 
     return wins, ties, losses
 
+def calculate_equity_stats(wins, ties, losses):
+    total = wins + ties + losses
+
+    if total == 0:
+        raise ValueError("Total number of outcomes cannot be zero.")
+
+    return {
+        "wins": wins,
+        "ties": ties,
+        "losses": losses,
+        "win_rate": wins / total,
+        "tie_rate": ties / total,
+        "loss_rate": losses / total,
+        "equity": (wins + ties / 2) / total
+    }
+
 if __name__ == "__main__":
     # Example usage: simulate equity of AA against a random opponent over 100,000 trials
     hole_cards = [cards.str_to_card("A of Spades"), cards.str_to_card("A of Hearts")]  # Example: Ace of Spades and Ace of Hearts
