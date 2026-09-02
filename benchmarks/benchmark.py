@@ -2,7 +2,7 @@
 Benchmark evaluator.py (restructured branching) vs fast_evaluator.py
 (prime-product lookup table) on random hands.
 
-Usage: python3 benchmark.py
+Usage: python3 -m benchmarks.benchmark
 """
 
 import random

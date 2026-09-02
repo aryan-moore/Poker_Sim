@@ -153,22 +153,3 @@ def calculate_equity_stats(wins, ties, losses):
         "loss_rate": losses / total,
         "equity": (wins + ties / 2) / total
     }
-
-if __name__ == "__main__":
-    # Example usage: simulate equity of AA against a random opponent over 100,000 trials
-    hole_cards = [cards.str_to_card("A of Spades"), cards.str_to_card("A of Hearts")]  # Example: Ace of Spades and Ace of Hearts
-    num_opponents = 1
-    num_trials = 100000
-    wins, ties, losses = simulate_equity(hole_cards, num_random_opponents=num_opponents, num_trials=num_trials)
-    print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
-    # Example usage: simulate equity of AA against a known opponent hand over 100,000 trials
-    opponent_hands = [[cards.str_to_card("K of Clubs"), cards.str_to_card("K of Diamonds")]]  # Example: King of Spades and King of Hearts
-    wins, ties, losses = simulate_equity(hole_cards, known_opponent_hands=opponent_hands, num_trials=num_trials)
-    print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
-    # Example usage: simulate equity of AA against known opponent hands over 100,000 trials
-    opponent_hands = [
-        [cards.str_to_card("K of Clubs"), cards.str_to_card("K of Hearts")],  # Example: King of Clubs and King of Diamonds
-        [cards.str_to_card("10 of Diamonds"), cards.str_to_card("J of Diamonds")]   # Example: 10 of Diamonds and Jack of Diamonds
-    ]
-    wins, ties, losses = simulate_equity(hole_cards, known_opponent_hands=opponent_hands, num_trials=num_trials)
-    print(f"Wins: {wins}, Ties: {ties}, Losses: {losses}")
