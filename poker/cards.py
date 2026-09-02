@@ -32,5 +32,14 @@ def str_to_card(card_str):
     suit = suits[suit_str]
     return suit * 13 + rank
 
+def std_str_to_card(card_str):
+    ranks = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6, '9': 7, 'T': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
+    suits = {'s': 0, 'h': 1, 'd': 2, 'c': 3}
+    rank_str = card_str[0]
+    suit_str = card_str[1]
+    rank = ranks[rank_str]
+    suit = suits[suit_str]
+    return suit * 13 + rank
+
 def make_cards(card_strings):
     return [str_to_card(card_str) for card_str in card_strings]
