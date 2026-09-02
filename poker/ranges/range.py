@@ -105,27 +105,69 @@ def expand_interval_notation(hand_class):
     if not validate_hand_class(start) or not validate_hand_class(end):
         raise ValueError(f"Invalid range: {hand_class}")
 
-    start_rank1, start_rank2, _ = parse_hand_class(start)
-    end_rank1, end_rank2, _ = parse_hand_class(end)
+    start_rank1, start_rank2, start_suited = parse_hand_class(start)
+    end_rank1, end_rank2, end_suited = parse_hand_class(end)
 
-    if (
-        start_rank1 != start_rank2
-        or end_rank1 != end_rank2
-    ):
+    if start_suited != end_suited:
         raise ValueError(
-            f"Only pocket-pair intervals are currently supported: {hand_class}"
+            f"Suitedness must match in interval notation: {hand_class}"
         )
 
     ranks = '23456789TJQKA'
-    start_index = ranks.index(start_rank1)
-    end_index = ranks.index(end_rank1)
 
-    if start_index > end_index:
-        raise ValueError(f"Invalid range order: {hand_class}")
+    start_index1 = ranks.index(start_rank1)
+    start_index2 = ranks.index(start_rank2)
+    end_index1 = ranks.index(end_rank1)
+    end_index2 = ranks.index(end_rank2)
+
+    suffix = start_suited if start_suited else ""
 
     expanded = []
-    for i in range(start_index, end_index + 1):
-        expanded.append(ranks[i] + ranks[i])
+
+    # Pocket pairs: 
+    if (
+        start_rank1 == start_rank2
+        and end_rank1 == end_rank2
+    ):
+        if start_index1 > end_index1:
+            raise ValueError(f"Invalid range order: {hand_class}")
+
+        for i in range(start_index1, end_index1 + 1):
+            expanded.append(ranks[i] + ranks[i])
+
+    # Fixed first rank:
+    elif start_rank1 == end_rank1:
+        if start_index2 > end_index2:
+            raise ValueError(f"Invalid range order: {hand_class}")
+
+        for i in range(start_index2, end_index2 + 1):
+            expanded.append(
+                start_rank1 + ranks[i] + suffix
+            )
+
+    # Sliding interval:
+    else:
+        start_gap = start_index1 - start_index2
+        end_gap = end_index1 - end_index2
+
+        if start_gap != end_gap:
+            raise ValueError(
+                f"Invalid sliding interval: {hand_class}"
+            )
+
+        if start_index1 > end_index1:
+            raise ValueError(
+                f"Invalid range order: {hand_class}"
+            )
+
+        for i in range(start_index1, end_index1 + 1):
+            new_rank1 = ranks[i]
+            new_rank2 = ranks[i - start_gap]
+
+            expanded.append(
+                new_rank1 + new_rank2 + suffix
+            )
+
     return expanded
 
 
@@ -138,11 +180,30 @@ def remove_blocked_combinations(combinations, known_cards):
 
 
 def get_legal_combinations(range_string, known_cards=None):
-    pass
+    hand_classes = parse_range(range_string)
+
+    combinations = []
+    seen = set()
+
+    for hand_class in hand_classes:
+        for combo in generate_combinations(hand_class):
+            canonical_combo = tuple(sorted(combo))
+
+            if canonical_combo not in seen:
+                combinations.append(combo)
+                seen.add(canonical_combo)
+
+    if known_cards:
+        combinations = remove_blocked_combinations(
+            combinations,
+            known_cards
+        )
+
+    return combinations
 
 
 def count_combinations(range_string, known_cards=None):
-    pass
+    return len(get_legal_combinations(range_string, known_cards))
 
 
 def validate_hand_class(hand_class):
@@ -160,4 +221,8 @@ def validate_hand_class(hand_class):
 
 
 def validate_range(range_string):
-    pass
+    try:
+        parse_range(range_string)
+        return True
+    except ValueError:
+        return False
