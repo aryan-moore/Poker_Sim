@@ -6,7 +6,7 @@ from poker import hand
 from poker.evaluation import evaluator
 from poker.evaluation import fast_evaluator
 from poker.simulation import exact_solver
-from poker.ranges import range
+from poker.ranges import range as range_parser
 
 def prepare_deck(hole_cards, known_opponent_hands, known_board):
     """
@@ -95,7 +95,7 @@ def simulate_equity_vs_range(hole_cards, opponent_range, known_board=None, num_t
     
     known_board = known_board if known_board is not None else []
 
-    legal_hands = range.get_legal_combinations(
+    legal_hands = range_parser.get_legal_combinations(
         opponent_range,
         hole_cards + known_board
     )
