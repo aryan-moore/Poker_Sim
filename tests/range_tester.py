@@ -1,5 +1,6 @@
 from poker.ranges import range
 import pytest
+from poker import cards
 
 def test_parse_hand_class():
     # Test parse_hand_class
@@ -66,3 +67,22 @@ def test_invalid_intervals():
 
     with pytest.raises(ValueError):
         range.expand_interval_notation("76s-AQs")
+
+def test_blocked_combinations():
+    ace_spades = cards.str_to_card("A of Spades")
+
+    assert range.count_combinations("AA") == 6
+    assert range.count_combinations("AA", [ace_spades]) == 3
+
+
+def test_validate_range():
+    assert range.validate_range("ATs+, K9o+, 22-66")
+    assert range.validate_range("76s-T9s")
+
+    assert not range.validate_range("AXs")
+    assert not range.validate_range("76s-T9o")
+
+def test_parse_range_duplicates():
+    assert range.parse_range("QQ+, KK+") == [
+        "QQ", "KK", "AA"
+    ]
