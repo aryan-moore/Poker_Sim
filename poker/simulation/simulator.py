@@ -1,9 +1,12 @@
+from random import random
+
 from poker import deck
 from poker import cards
 from poker import hand
 from poker.evaluation import evaluator
 from poker.evaluation import fast_evaluator
 from poker.simulation import exact_solver
+from poker.ranges import range
 
 def prepare_deck(hole_cards, known_opponent_hands, known_board):
     """
@@ -79,6 +82,47 @@ def simulate_equity(hole_cards, known_opponent_hands=None, num_random_opponents=
         random_hands, board = deal_trial(prepared_deck, num_random_opponents, known_board)
         opponent_hands = known_opponent_hands + random_hands
         result = score_trial(hole_cards, opponent_hands, board)
+        if result == 0:
+            wins += 1
+        elif result == 1:
+            ties += 1
+        else:
+            losses += 1
+
+    return wins, ties, losses
+
+def simulate_equity_vs_range(hole_cards, opponent_range, known_board=None, num_trials=20000):
+    
+    known_board = known_board if known_board is not None else []
+
+    legal_hands = range.get_legal_combinations(
+        opponent_range,
+        hole_cards + known_board
+    )
+
+    wins = ties = losses = 0
+
+    for _ in range(num_trials):
+        villain_hand = random.choice(legal_hands)
+
+        prepared_deck = prepare_deck(
+            hole_cards,
+            [villain_hand],
+            known_board
+        )
+
+        _, board = deal_trial(
+            prepared_deck,
+            0,
+            known_board
+        )
+
+        result = score_trial(
+            hole_cards,
+            [villain_hand],
+            board
+        )
+
         if result == 0:
             wins += 1
         elif result == 1:
