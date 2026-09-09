@@ -34,7 +34,8 @@ from poker.evaluation.evaluator import (
 # encoding). Values themselves don't matter, only that they're distinct
 # primes -- used purely for the unique-product trick.
 PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
-
+CARD_PRIME = tuple(PRIMES[c % 13] for c in range(52))
+CARD_SUIT = tuple(c // 13 for c in range(52))
 
 def _prime_product(ranks):
     product = 1
@@ -138,32 +139,43 @@ _COMBOS_6 = list(itertools.combinations(range(6), 5))
 
 
 def evaluate_hand(a_hand):
-    """
-    Drop-in replacement for evaluator.evaluate_hand(), same return shape.
-    Handles 5, 6, or 7 card hands (hole cards + up to 5 board cards).
-
-    Inlined rather than calling evaluate_5() per combo: Python function-call
-    overhead dominates at this scale, so for 6/7-card hands we compute
-    ranks/suits/rank-primes exactly once, then loop over the 21 (or 6)
-    precomputed index-combinations doing only integer multiplies, suit
-    comparisons, and dict lookups -- no further function calls.
-    """
-    # Local aliases: local variable access is faster than global lookup
-    # in a hot loop.
-    primes = PRIMES
     nonflush = _NONFLUSH_TABLE
     flush = _FLUSH_TABLE
 
     n = len(a_hand)
+
+    # Extremely hot 5-card path: avoid allocating ranks/suits/prime lists.
+    if n == 5:
+        c0, c1, c2, c3, c4 = a_hand
+
+        card_prime = CARD_PRIME
+        card_suit = CARD_SUIT
+
+        product = (
+            card_prime[c0]
+            * card_prime[c1]
+            * card_prime[c2]
+            * card_prime[c3]
+            * card_prime[c4]
+        )
+
+        s0 = card_suit[c0]
+
+        if (
+            s0 == card_suit[c1]
+            and s0 == card_suit[c2]
+            and s0 == card_suit[c3]
+            and s0 == card_suit[c4]
+        ):
+            return flush[product]
+
+        return nonflush[product]
+
+    # Only pay these allocations for 6/7-card hands.
+    primes = PRIMES
     ranks = [c % 13 for c in a_hand]
     suits = [c // 13 for c in a_hand]
     rank_primes = [primes[r] for r in ranks]
-
-    if n == 5:
-        product = rank_primes[0] * rank_primes[1] * rank_primes[2] * rank_primes[3] * rank_primes[4]
-        if suits[0] == suits[1] == suits[2] == suits[3] == suits[4]:
-            return flush[product]
-        return nonflush[product]
 
     if n == 6:
         combos = _COMBOS_6
@@ -173,12 +185,26 @@ def evaluate_hand(a_hand):
         combos = itertools.combinations(range(n), 5)
 
     best = None
+
     for i0, i1, i2, i3, i4 in combos:
-        product = rank_primes[i0] * rank_primes[i1] * rank_primes[i2] * rank_primes[i3] * rank_primes[i4]
-        if suits[i0] == suits[i1] == suits[i2] == suits[i3] == suits[i4]:
+        product = (
+            rank_primes[i0]
+            * rank_primes[i1]
+            * rank_primes[i2]
+            * rank_primes[i3]
+            * rank_primes[i4]
+        )
+
+        if (
+            suits[i0] == suits[i1]
+            == suits[i2] == suits[i3]
+            == suits[i4]
+        ):
             result = flush[product]
         else:
             result = nonflush[product]
+
         if best is None or result > best:
             best = result
+
     return best
