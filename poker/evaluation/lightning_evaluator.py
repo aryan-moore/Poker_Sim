@@ -65,8 +65,18 @@ def evaluate_hand(hand):
         return nonflush[product]     
 
     elif n == 6:
-        best = None
-        for i0, i1, i2, i3, i4 in COMBOS_6:
+        first = COMBOS_6[0]
+        i0, i1, i2, i3, i4 = first
+
+        best = _evaluate_5_cards(
+            hand[i0],
+            hand[i1],
+            hand[i2],
+            hand[i3],
+            hand[i4],
+        )
+
+        for i0, i1, i2, i3, i4 in COMBOS_6[1:]:
             score = _evaluate_5_cards(
                 hand[i0],
                 hand[i1],
@@ -74,13 +84,23 @@ def evaluate_hand(hand):
                 hand[i3],
                 hand[i4],
             )
-            if best is None or score > best:
+            if score > best:
                 best = score
         return best 
 
     elif n == 7:
-        best = None
-        for i0, i1, i2, i3, i4 in COMBOS_7:
+        first = COMBOS_7[0]
+        i0, i1, i2, i3, i4 = first
+        
+        best = _evaluate_5_cards(
+            hand[i0],
+            hand[i1],
+            hand[i2],
+            hand[i3],
+            hand[i4],
+            )
+        
+        for i0, i1, i2, i3, i4 in COMBOS_7[1:]:
             score = _evaluate_5_cards(
                 hand[i0],
                 hand[i1],
@@ -88,9 +108,9 @@ def evaluate_hand(hand):
                 hand[i3],
                 hand[i4],
             )
-            if best is None or score > best:
+            if score > best:
                 best = score
-        return best
+        return best 
 
     else:
         raise ValueError(f"Invalid hand length: {n}")
