@@ -150,7 +150,7 @@ def run(cards_per_hand, n_hands=DEFAULT_TRIALS):
         treys_hands,
     )
 
-    branching_rate = n_hands / t_branching
+    # branching_rate = n_hands / t_branching
     fast_rate = n_hands / t_fast
     lightning_rate = n_hands / t_lightning
     treys_rate = n_hands / t_treys
@@ -204,11 +204,41 @@ def run(cards_per_hand, n_hands=DEFAULT_TRIALS):
         f"{lightning_rate / fast_rate:.2f}x"
     )
 
+def run_no_branching(cards_per_hand, n_hands=200000):
+    hands = make_random_hands(n_hands, cards_per_hand)
+    treys_hands = convert_hands_for_treys(hands)
+
+    treys_evaluator = TreysEvaluator()
+
+    def treys_eval(h):
+        return treys_evaluator.evaluate(h[2:], h[:2])
+
+    t_lookup = bench(fast_evaluator.evaluate_hand, hands)
+    t_lightning = bench(lightning_evaluator.evaluate_hand, hands)
+    t_treys = bench(treys_eval, treys_hands)
+
+    fast_rate = n_hands / t_lookup
+    lightning_rate = n_hands / t_lightning
+    treys_rate = n_hands / t_treys
+
+    print(f"\n{cards_per_hand}-card hands ({n_hands:,} trials):")
+    print(f"  lookup table: {fast_rate:>12,.0f} hands/sec")
+    print(f"  lightning:    {lightning_rate:>12,.0f} hands/sec")
+    print(f"  treys:        {treys_rate:>12,.0f} hands/sec")
+
+    print()
+    print("Relative Performance")
+    print("-" * 60)
+
+    print(f"Fast vs Treys:       {fast_rate / treys_rate:.2f}x")
+    print(f"Lightning vs Treys:  {lightning_rate / treys_rate:.2f}x")
+    print(f"Lightning vs Fast:   {lightning_rate / fast_rate:.2f}x")
+
 
 def main():
-    run(5, 1_000_000)
-    run(6, 1_000_000)
-    run(7, 1_000_000)
+    run_no_branching(5, 1_000_000)
+    run_no_branching(6, 1_000_000)
+    run_no_branching(7, 1_000_000)
 
 
 if __name__ == "__main__":

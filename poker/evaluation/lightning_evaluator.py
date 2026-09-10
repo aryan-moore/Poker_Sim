@@ -7,8 +7,6 @@ from poker.evaluation.fast_evaluator import (
 )
 
 from poker.evaluation.evaluator import(
-    find_straight_high,
-    strength,
     STRAIGHT_FLUSH,
     FOUR_OF_A_KIND,
     FULL_HOUSE,
@@ -51,7 +49,65 @@ for mask in range(8192):
             break
 
 STRAIGHT_HIGH_BY_MASK = tuple(STRAIGHT_HIGH_BY_MASK)
+TOP2_BY_MASK = [None] * 8192
 
+for mask in range(8192):
+    top = []
+
+    for rank in range(12, -1, -1):
+        if mask & (1 << rank):
+            top.append(rank + 2)
+
+            if len(top) == 2:
+                break
+
+    if len(top) == 2:
+        TOP2_BY_MASK[mask] = (top[0], top[1])
+
+TOP2_BY_MASK = tuple(TOP2_BY_MASK)
+
+TOP3_BY_MASK = [None] * 8192
+
+for mask in range(8192):
+    top = []
+
+    for rank in range(12, -1, -1):
+        if mask & (1 << rank):
+            top.append(rank + 2)
+
+            if len(top) == 3:
+                break
+
+    if len(top) == 3:
+        TOP3_BY_MASK[mask] = (top[0], top[1], top[2])
+
+TOP3_BY_MASK = tuple(TOP3_BY_MASK)
+
+TOP5_BY_MASK = [None] * 8192
+
+for mask in range(8192):
+    top = []
+
+    for rank in range(12, -1, -1):
+        if mask & (1 << rank):
+            top.append(rank + 2)
+
+            if len(top) == 5:
+                break
+
+    if len(top) == 5:
+        TOP5_BY_MASK[mask] = (top[0], top[1], top[2], top[3], top[4])
+
+TOP5_BY_MASK = tuple(TOP5_BY_MASK)
+TOP1_BY_MASK = [None] * 8192
+
+for mask in range(8192):
+    for rank in range(12, -1, -1):
+        if mask & (1 << rank):
+            TOP1_BY_MASK[mask] = rank + 2
+            break
+
+TOP1_BY_MASK = tuple(TOP1_BY_MASK)
 
 def evaluate_5(hand):
     c0, c1, c2, c3, c4 = hand
@@ -106,29 +162,37 @@ def evaluate_seven(hand):
             if high:
                 return (STRAIGHT_FLUSH, high)
 
-            break
+            #Flush, becuase no Quads/Boat cannot exist if flush exists
+            return FLUSH_BY_MASK[suit_masks[flush_suit]]
 
-    #QUADS
+    # QUADS
     for rank in range(12, -1, -1):
         if rank_counts[rank] == 4:
-            for kicker in range(12, -1, -1):
-                if kicker != rank and rank_counts[kicker] > 0:
-                    return (FOUR_OF_A_KIND, rank + 2, kicker + 2)
+            kicker_mask = rank_mask & ~(1 << rank)
+            return (
+                FOUR_OF_A_KIND,
+                rank + 2,
+                TOP1_BY_MASK[kicker_mask],
+            )
 
     #BOAT BABY
     trip_rank = -1
+    pair_rank = -1
+    pair2_rank = -1
     for rank in range(12, -1, -1):
-        if rank_counts[rank] == 3:
+        if rank_counts[rank] >= 3:
             trip_rank = rank
             break
-    if trip_rank != -1:
-        for rank in range(12, -1, -1):
-            if rank != trip_rank and rank_counts[rank] >= 2:
-                return (FULL_HOUSE, trip_rank + 2, rank + 2)
-
-    #FLUSH
-    if flush_suit != -1:
-        return FLUSH_BY_MASK[suit_masks[flush_suit]]
+    for pairrank in range(12, -1, -1):
+        if pairrank != trip_rank and rank_counts[pairrank] >= 2:
+            if pair_rank == -1:
+                pair_rank = pairrank
+            elif pair2_rank == -1:
+                pair2_rank = pairrank
+                break
+    
+    if trip_rank != -1 and pair_rank != -1:
+        return (FULL_HOUSE, trip_rank + 2, pair_rank + 2)
 
     #STRAIGHT
     high = STRAIGHT_HIGH_BY_MASK[rank_mask]
@@ -137,25 +201,43 @@ def evaluate_seven(hand):
         return (STRAIGHT, high)
 
     #TRIPS
-    for trip_rank in range(12, -1, -1):
-        if rank_counts[trip_rank] == 3:
-            k1 = -1
-            k2 = -1
+    if trip_rank != -1:
+        kicker_mask = rank_mask & ~(1 << trip_rank)
+        k1, k2 = TOP2_BY_MASK[kicker_mask]
 
-            for rank in range(12, -1, -1):
-                if rank != trip_rank and rank_counts[rank] > 0:
-                    if k1 == -1:
-                        k1 = rank + 2
-                else:
-                        k2 = rank + 2
-                        return (
-                            THREE_OF_A_KIND,
-                            trip_rank + 2,
-                            k1,
-                            k2,
-                        )
+        return (
+            THREE_OF_A_KIND,
+            trip_rank + 2,
+            k1,
+            k2,
+        )
 
-    
+    #One or Two pairs
+    if pair_rank != -1:
+        if pair2_rank != -1:
+            kicker_mask = rank_mask & ~(1 << pair_rank) & ~(1 << pair2_rank)
+            kicker = TOP1_BY_MASK[kicker_mask]
+
+            return (
+                TWO_PAIR,
+                pair_rank + 2,
+                pair2_rank + 2,
+                kicker,
+            )
+        else:
+            kicker_mask = rank_mask & ~(1 << pair_rank)
+            k1, k2, k3 = TOP3_BY_MASK[kicker_mask]
+
+            return (
+                ONE_PAIR,
+                pair_rank + 2,
+                k1,
+                k2,
+                k3,
+            )
+    #High card
+    c1, c2, c3, c4, c5 = TOP5_BY_MASK[rank_mask]
+    return (HIGH_CARD, c1, c2, c3, c4, c5)
 
     
 
@@ -188,28 +270,31 @@ def evaluate_hand(hand):
         return nonflush[product]     
 
     elif n == 6:
-        first = COMBOS_6[0]
-        i0, i1, i2, i3, i4 = first
+        c0, c1, c2, c3, c4, c5 = hand
 
-        best = _evaluate_5_cards(
-            hand[i0],
-            hand[i1],
-            hand[i2],
-            hand[i3],
-            hand[i4],
-        )
+        best = _evaluate_5_cards(c1, c2, c3, c4, c5)
 
-        for i0, i1, i2, i3, i4 in COMBOS_6[1:]:
-            score = _evaluate_5_cards(
-                hand[i0],
-                hand[i1],
-                hand[i2],
-                hand[i3],
-                hand[i4],
-            )
-            if score > best:
-                best = score
-        return best 
+        score = _evaluate_5_cards(c0, c2, c3, c4, c5)
+        if score > best:
+            best = score
+
+        score = _evaluate_5_cards(c0, c1, c3, c4, c5)
+        if score > best:
+            best = score
+
+        score = _evaluate_5_cards(c0, c1, c2, c4, c5)
+        if score > best:
+            best = score
+
+        score = _evaluate_5_cards(c0, c1, c2, c3, c5)
+        if score > best:
+            best = score
+
+        score = _evaluate_5_cards(c0, c1, c2, c3, c4)
+        if score > best:
+            best = score
+
+        return best
 
     elif n == 7:
         return evaluate_seven(hand)
