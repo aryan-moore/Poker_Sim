@@ -1,14 +1,16 @@
 from poker.evaluation import evaluator
 from poker.evaluation import fast_evaluator
+from poker.evaluation import lightning_evaluator
 from poker import deck
 from poker import hand
 from poker import cards
+import random
 
 """
-Test consistency between the two evaluators. The fast evaluator is
-faster, but the pure Python evaluator is easier to read and understand. The two should
+Test consistency between the three evaluators. The fast evaluator is
+faster, lightning is faster still, but the pure Python evaluator is easier to read and understand. The two should
 produce the same results for all hands, so we can use the pure Python evaluator to verify
-the fast evaluator is working correctly.
+the fast evaluators are working correctly.
 """
 
 def check_both_evaluators(hole_cards, board):
@@ -18,7 +20,9 @@ def check_both_evaluators(hole_cards, board):
     new_hand = hand.make_hand(hole_cards, board)
     fast_eval = fast_evaluator.evaluate_hand(new_hand)
     pure_eval = evaluator.evaluate_hand(new_hand)
+    light_eval = lightning_evaluator.evaluate_hand(new_hand)
     assert fast_eval == pure_eval, f"Fast evaluator returned {fast_eval}, but pure evaluator returned {pure_eval} for hand {hole_cards} and board {board}"
+    assert fast_eval == light_eval, f"Fast evaluator returned {fast_eval}, but lightning evaluator returned {light_eval} for hand {hole_cards} and board {board}"
 
 def check_expected_evaluation(hole_cards, board, expected_result):
     """
@@ -28,7 +32,9 @@ def check_expected_evaluation(hole_cards, board, expected_result):
     new_hand = hand.make_hand(hole_cards, board)
     fast_eval = fast_evaluator.evaluate_hand(new_hand)
     pure_eval = evaluator.evaluate_hand(new_hand)
+    light_eval = lightning_evaluator.evaluate_hand(new_hand)
     assert fast_eval == pure_eval, f"Fast evaluator returned {fast_eval}, but pure evaluator returned {pure_eval} for hand {hole_cards} and board {board}"
+    assert fast_eval == light_eval, f"Fast evaluator returned {fast_eval}, but lightning evaluator returned {light_eval} for hand {hole_cards} and board {board}"
     assert fast_eval == expected_result, f"Expected result {expected_result}, but got {fast_eval} for hand {hole_cards} and board {board}"
 
 def test_royal_flush():
@@ -301,6 +307,27 @@ def test_random_hands():
         board.append(deck.deal_card(test_deck))  # River
         for hole_cards in dealt_hands:
             check_both_evaluators(hole_cards, board)
+
+def test_random_hand_sizes():
+    for size in (5, 6, 7):
+        for _ in range(100000):
+            test_hand = random.sample(range(52), size)
+
+            pure_eval = evaluator.evaluate_hand(test_hand)
+            fast_eval = fast_evaluator.evaluate_hand(test_hand)
+            light_eval = lightning_evaluator.evaluate_hand(test_hand)
+
+            assert fast_eval == pure_eval, (
+                f"Fast mismatch for {size}-card hand {test_hand}: "
+                f"{fast_eval} != {pure_eval}"
+            )
+
+            assert light_eval == pure_eval, (
+                f"Lightning mismatch for {size}-card hand {test_hand}: "
+                f"{light_eval} != {pure_eval}"
+            )
+
+        print(f"✓ {size}-card random tests passed")
     
 if __name__ == "__main__":
     """
@@ -318,4 +345,5 @@ if __name__ == "__main__":
     test_wheel()
     test_wheel_straight_flush()
     test_random_hands()
+    test_random_hand_sizes()
     print("\u2713 All tests passed")

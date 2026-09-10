@@ -6,6 +6,7 @@ from treys import Card, Evaluator
 
 from poker.evaluation.evaluator import evaluate_hand as branching_evaluate
 from poker.evaluation.fast_evaluator import evaluate_hand as fast_evaluate
+from poker.evaluation.lightning_evaluator import evaluate_hand as lightning_evaluate    
 
 
 NUM_HANDS = 1_000_000
@@ -66,6 +67,9 @@ def branching_wrapper(hand):
 
 def fast_wrapper(hand):
     return fast_evaluate(hand)
+
+def lightning_wrapper(hand):
+    return lightning_evaluate(hand)
 
 
 def benchmark(name, fn, hands, trials=NUM_TRIALS):
@@ -165,6 +169,12 @@ def main():
         hands,
     )
 
+    lightning_rate = benchmark(
+        "Lightning evaluator",
+        lightning_wrapper,
+        hands,
+    )
+
     treys_rate = benchmark_treys(treys_hands)
 
     print("=" * 60)
@@ -181,11 +191,17 @@ def main():
         f"{fast_rate / treys_rate:.2f}x"
     )
 
+    print(
+        f"Lightning vs Treys: "
+        f"{lightning_rate / treys_rate:.2f}x"
+    )
+
     print()
     print("Median Throughput")
     print("-" * 60)
     print(f"Branching: {branching_rate:,.0f} evals/sec")
     print(f"Fast:      {fast_rate:,.0f} evals/sec")
+    print(f"Lightning: {lightning_rate:,.0f} evals/sec")
     print(f"Treys:     {treys_rate:,.0f} evals/sec")
 
 

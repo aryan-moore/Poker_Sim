@@ -226,6 +226,7 @@ def evaluate_hand(a_hand):
     and higher categories/tiebreaks always sort higher, you can compare
     two hands directly: evaluate_hand(a) > evaluate_hand(b)
     """
+    a_hand = sorted(a_hand)  # sort ascending, so highest cards are last
     counts = rank_counts(a_hand)
 
     suit_counts = [0, 0, 0, 0]
