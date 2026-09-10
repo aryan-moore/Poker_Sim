@@ -109,42 +109,6 @@ def benchmark_treys(treys_hands, trials=NUM_TRIALS):
 
     print("Treys")
 
-    # Warmup
-    for hole, board in treys_hands[:10_000]:
-        evaluator.evaluate(board, hole)
-
-    for trial in range(1, trials + 1):
-        start = time.perf_counter()
-
-        result = None
-        for hole, board in treys_hands:
-            result = evaluator.evaluate(board, hole)
-
-        elapsed = time.perf_counter() - start
-        rate = len(treys_hands) / elapsed
-        rates.append(rate)
-
-        print(
-            f"  Trial {trial}: "
-            f"{elapsed:.4f} sec | "
-            f"{rate:,.0f} evals/sec"
-        )
-
-    median_rate = median(rates)
-
-    print(f"  Median: {median_rate:,.0f} evals/sec")
-    print(f"  Last result: {result}")
-    print()
-
-    return median_rate
-
-
-def benchmark_treys(treys_hands, trials=NUM_TRIALS):
-    evaluator = Evaluator()
-    rates = []
-
-    print("Treys")
-
     for trial in range(1, trials + 1):
         start = time.perf_counter()
 

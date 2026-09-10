@@ -10,6 +10,7 @@ import time
 
 from poker.evaluation import evaluator
 from poker.evaluation import fast_evaluator
+from poker.evaluation import lightning_evaluator
 
 
 def make_random_hands(n_hands, cards_per_hand, seed=1):
@@ -34,11 +35,14 @@ def run(cards_per_hand, n_hands=200000):
 
     t_branching = bench(evaluator.evaluate_hand, hands)
     t_lookup = bench(fast_evaluator.evaluate_hand, hands)
+    t_lightning = bench(lightning_evaluator.evaluate_hand, hands)
 
     print(f"\n{cards_per_hand}-card hands ({n_hands:,} trials):")
     print(f"  branching:    {n_hands / t_branching:>12,.0f} hands/sec")
     print(f"  lookup table: {n_hands / t_lookup:>12,.0f} hands/sec  "
           f"({t_branching / t_lookup:.2f}x)")
+    print(f"  lightning:    {n_hands / t_lightning:>12,.0f} hands/sec  "
+          f"({t_branching / t_lightning:.2f}x)")
 
 
 if __name__ == "__main__":
