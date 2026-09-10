@@ -206,9 +206,9 @@ def run(cards_per_hand, n_hands=DEFAULT_TRIALS):
 
 
 def main():
-    run(5, 200_000)
-    run(6, 200_000)
-    run(7, 200_000)
+    run(5, 1_000_000)
+    run(6, 1_000_000)
+    run(7, 1_000_000)
 
 
 if __name__ == "__main__":
