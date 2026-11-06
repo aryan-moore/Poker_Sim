@@ -24,23 +24,26 @@ def main():
 
     hero_input = input("Hero hand (e.g. As Kh): ")
     board_input = input("Board (e.g. Qs 7d 2s, or leave blank): ")
-    range_input = input("Opponent range (e.g. TT+, AQs+, AKo): ")
+    range_input = input("Opponent range (e.g. TT+, AQs+, AKo, or blank for random): ")
     trials_input = input("Number of trials [20000]: ")
 
     hero = parse_cards(hero_input)
     board = parse_cards(board_input)
-
-    if trials_input.strip():
-        num_trials = int(trials_input)
-    else:
-        num_trials = 20000
-
-    wins, ties, losses = simulator.simulate_equity_vs_range(
-        hero,
-        range_input,
-        known_board=board,
-        num_trials=num_trials
+    num_trials = int(trials_input) if trials_input.strip() else 20000
+    if range_input.strip():
+        wins, ties, losses = simulator.simulate_equity_vs_range(
+            hero,
+            range_input,
+            known_board=board,
+            num_trials=num_trials
     )
+    else:
+        wins, ties, losses = simulator.simulate_equity(
+            hero,
+            num_random_opponents=1,
+            known_board=board,
+            num_trials=num_trials
+        )
 
     results = simulator.calculate_equity_stats(
         wins,
